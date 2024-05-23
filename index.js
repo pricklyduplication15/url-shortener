@@ -47,11 +47,11 @@ app.post("/api/shorturl", function (req, res) {
 });
 
 app.get("/api/shorturl/:short_url", (req, res) => {
-  const shortId = parseInt(req.params.short_url); // Parse the short_url parameter as an integer
-  const urlEntry = urlDatabase.find((entry) => entry.short_url === shortId); // Find the entry in the database
+  const shortId = req.params.short_url; // Remove parseInt() call
+  const urlEntry = urlDatabase.find((entry) => entry.short_url === shortId);
 
   if (urlEntry) {
-    res.redirect(urlEntry.url); // Redirect to the long URL
+    res.redirect(urlEntry.url);
   } else {
     res.status(404).send("URL not found");
   }
