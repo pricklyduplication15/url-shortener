@@ -18,14 +18,21 @@ app.get("/", function (req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
 });
 
+const { URL } = require("url"); // Import the URL module
+
+// Inside the /api/shorturl endpoint
 app.post("/api/shorturl", async (req, res) => {
   const longUrl = req.body.url;
   if (!longUrl) {
     return res.status(400).send("URL is required");
   }
 
+  // Parse the URL and extract the hostname
+  const parsedUrl = new URL(longUrl);
+  const hostname = parsedUrl.hostname;
+
   // Perform DNS lookup to validate the URL
-  dns.lookup(longUrl, (err, address, family) => {
+  dns.lookup(hostname, (err, address, family) => {
     if (err) {
       console.error("Error validating URL:", err);
       return res.status(400).send("Invalid URL");
