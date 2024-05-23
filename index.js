@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const dns = require("dns");
 const app = express();
-const urlDatabase = {};
 
 const port = process.env.PORT || 3000;
 
@@ -18,28 +17,27 @@ app.get("/", function (req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
 });
 
-const { URL } = require("url"); // Import the URL module
+let urlDatabase = [];
 
-// Inside the /api/shorturl endpoint
-app.post("/api/shorturl", async (req, res) => {
-  const longUrl = req.body.url;
-  if (!longUrl) {
-    return res.status(400).send("URL is required");
-  }
+app.post("/api/shorturl", function (req, res) {
+  console.log(req.body);
+  const url = req.body.url;
+  const parsedUrl = urlparser.parse(url);
 
-  // Parse the URL and extract the hostname
-  const parsedUrl = new URL(longUrl);
-  const hostname = parsedUrl.hostname;
+  // Check if the URL is valid
+  dns.lookup(parsedUrl.hostname, async (err, address) => {
+    if (!address) {
+      res.json({ error: "Invalid URL" });
+    } else {
+      // Generate short URL based on the array length
+      const shortUrl = urlDatabase.length;
 
-  // Perform DNS lookup to validate the URL
-  dns.lookup(hostname, (err, address, family) => {
-    if (err) {
-      console.error("Error validating URL:", err);
-      return res.status(400).send("Invalid URL");
+      // Add URL to the database
+      urlDatabase.push({ url: url, short_url: shortUrl });
+
+      // Send response with original and short URL
+      res.json({ original_url: url, short_url: shortUrl });
     }
-
-    // If DNS lookup succeeds, generate short URL
-    generateShortUrl(longUrl, res);
   });
 });
 
@@ -57,7 +55,7 @@ async function generateShortUrl(longUrl, res) {
   }
 }
 
-app.get("/api/shorturl/:id", (req, res) => {
+app.get("/api/shorturl/:short_url", (req, res) => {
   const shortId = req.params.id;
   const longUrl = urlDatabase[shortId];
 
