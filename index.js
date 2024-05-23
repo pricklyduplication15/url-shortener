@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const dns = require("dns");
 const app = express();
 const urlDatabase = {};
 
@@ -23,6 +24,19 @@ app.post("/api/shorturl", async (req, res) => {
     return res.status(400).send("URL is required");
   }
 
+  // Perform DNS lookup to validate the URL
+  dns.lookup(longUrl, (err, address, family) => {
+    if (err) {
+      console.error("Error validating URL:", err);
+      return res.status(400).send("Invalid URL");
+    }
+
+    // If DNS lookup succeeds, generate short URL
+    generateShortUrl(longUrl, res);
+  });
+});
+
+async function generateShortUrl(longUrl, res) {
   try {
     // Dynamically import nanoid
     const { nanoid } = await import("nanoid");
@@ -34,7 +48,7 @@ app.post("/api/shorturl", async (req, res) => {
     console.error("Error generating short URL:", error);
     res.status(500).send("Error generating short URL");
   }
-});
+}
 
 app.get("/api/shorturl/:id", (req, res) => {
   const shortId = req.params.id;
