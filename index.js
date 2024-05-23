@@ -29,7 +29,7 @@ app.post("/api/shorturl", async (req, res) => {
     const shortId = nanoid(7); // Generate a unique ID with a length of 7
     urlDatabase[shortId] = longUrl;
 
-    res.json({ original_url: longUrl, short_Url: shortId });
+    res.json({ original_url: longUrl, short_url: shortId });
   } catch (error) {
     console.error("Error generating short URL:", error);
     res.status(500).send("Error generating short URL");
