@@ -2,24 +2,26 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const dns = require("dns");
-const app = express();
 const urlparser = require("url");
 
+const app = express();
+
+// Initialize an array to store URLs
+let urlDatabase = [];
+
+// Basic Configuration
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-
-app.use("/public", express.static(`${process.cwd()}/public`));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/public", express.static(`${process.cwd()}/public`));
 
 app.get("/", function (req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
 });
 
-let urlDatabase = [];
-
+// Your first API endpoint
 app.post("/api/shorturl", function (req, res) {
   console.log(req.body);
   const url = req.body.url;
@@ -30,7 +32,7 @@ app.post("/api/shorturl", function (req, res) {
   const parsedUrl = urlparser.parse(fullUrl);
 
   // Check if the URL is valid
-  dns.lookup(parsedUrl.hostname, async (err, address) => {
+  dns.lookup(parsedUrl.hostname, (err, address) => {
     if (!address) {
       res.json({ error: "Invalid URL" });
     } else {
@@ -47,8 +49,8 @@ app.post("/api/shorturl", function (req, res) {
 });
 
 app.get("/api/shorturl/:short_url", (req, res) => {
-  const shortId = req.params.short_url; // Remove parseInt() call
-  const urlEntry = urlDatabase.find((entry) => entry.short_url === shortId);
+  const shortUrl = req.params.short_url;
+  const urlEntry = urlDatabase.find((entry) => entry.short_url === +shortUrl);
 
   if (urlEntry) {
     res.redirect(urlEntry.url);
